@@ -1,0 +1,3466 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Kaiju Genesis</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html,
+body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#000;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+canvas{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    display:none;
+}
+
+
+/* =========================================================
+   TELAS
+========================================================= */
+
+.screen{
+    position:fixed;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    z-index:20;
+}
+
+
+/* =========================================================
+   MENU
+========================================================= */
+
+#menu{
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(15,45,70,.7),
+            rgba(0,0,0,.97)
+        );
+}
+
+.logoImage{
+    width:min(650px,75vw);
+    max-height:220px;
+    object-fit:contain;
+    margin-bottom:45px;
+    filter:drop-shadow(0 0 25px #168cff);
+}
+
+.logoFallback{
+    font-size:70px;
+    font-weight:900;
+    letter-spacing:8px;
+    color:#fff;
+    text-shadow:
+        0 0 10px #168cff,
+        0 0 30px #168cff,
+        0 0 60px #0066ff;
+    margin-bottom:55px;
+}
+
+.menuButtons{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+    width:360px;
+}
+
+.menuButton{
+    height:65px;
+    border:2px solid #168cff;
+    background:
+        linear-gradient(
+            90deg,
+            #06111c,
+            #123b59,
+            #06111c
+        );
+    color:white;
+    font-size:22px;
+    font-weight:bold;
+    letter-spacing:2px;
+    cursor:pointer;
+    transition:.2s;
+    box-shadow:
+        0 0 10px rgba(0,140,255,.35),
+        inset 0 0 15px rgba(0,100,255,.15);
+}
+
+.menuButton:hover{
+    transform:scale(1.04);
+    border-color:#5ed0ff;
+    box-shadow:
+        0 0 25px #168cff,
+        inset 0 0 20px rgba(0,150,255,.25);
+}
+
+.version{
+    position:absolute;
+    bottom:15px;
+    color:#52606c;
+    font-size:12px;
+}
+
+
+/* =========================================================
+   SELEÇÃO DE KAIJUS
+========================================================= */
+
+#characterSelect{
+    display:none !important;
+    overflow:hidden;
+
+    background:
+        radial-gradient(
+            ellipse at center,
+            rgba(20,55,80,.8),
+            rgba(0,0,0,.98) 75%
+        );
+}
+
+#characterSelect.active{
+    display:flex !important;
+}
+
+
+/* linhas decorativas */
+
+#characterSelect::before{
+    content:"";
+    position:absolute;
+    left:0;
+    right:0;
+    top:0;
+    height:4px;
+    background:#168cff;
+    box-shadow:0 0 25px #168cff;
+}
+
+#characterSelect::after{
+    content:"";
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:0;
+    height:4px;
+    background:#168cff;
+    box-shadow:0 0 25px #168cff;
+}
+
+
+/* =========================================================
+   CABEÇALHO
+========================================================= */
+
+.selectHeader{
+    position:absolute;
+    top:22px;
+    left:0;
+    right:0;
+    text-align:center;
+    z-index:10;
+}
+
+.selectTitle{
+    color:white;
+    font-size:38px;
+    font-weight:900;
+    letter-spacing:7px;
+    text-shadow:
+        0 0 10px #168cff,
+        0 0 25px #168cff;
+}
+
+.selectMode{
+    color:#72cfff;
+    font-size:13px;
+    letter-spacing:4px;
+    margin-top:5px;
+}
+
+.selectTurn{
+    display:inline-block;
+    margin-top:10px;
+    padding:7px 25px;
+    border:1px solid #168cff;
+    background:rgba(0,15,30,.85);
+    color:white;
+    font-size:14px;
+    font-weight:bold;
+    letter-spacing:2px;
+}
+
+
+/* =========================================================
+   ÁREA DOS JOGADORES
+========================================================= */
+
+.playerPreview{
+    position:absolute;
+    top:95px;
+    width:330px;
+    height:390px;
+    z-index:2;
+    pointer-events:none;
+}
+
+#player1Preview{
+    left:10px;
+}
+
+#player2Preview{
+    right:10px;
+}
+
+
+/* imagem grande */
+
+.previewImage{
+    position:absolute;
+    width:100%;
+    height:330px;
+    object-fit:contain;
+
+    opacity:0;
+    transform:scale(.85);
+
+    transition:
+        opacity .25s ease,
+        transform .25s ease;
+
+    filter:
+        drop-shadow(0 0 15px #168cff)
+        drop-shadow(0 0 30px rgba(0,130,255,.5));
+}
+
+.previewImage.show{
+    opacity:1;
+    transform:scale(1);
+}
+
+
+/* nome */
+
+.previewName{
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:15px;
+
+    text-align:center;
+
+    color:white;
+    font-size:25px;
+    font-weight:900;
+    letter-spacing:3px;
+
+    text-shadow:
+        0 0 10px #168cff,
+        0 0 25px #000;
+
+    opacity:0;
+
+    transition:.25s;
+}
+
+.previewName.show{
+    opacity:1;
+}
+
+
+/* jogador */
+
+.playerLabel{
+    position:absolute;
+    top:0;
+    width:100%;
+
+    color:#52caff;
+    font-size:15px;
+    font-weight:bold;
+    letter-spacing:4px;
+    text-align:center;
+
+    text-shadow:0 0 10px #168cff;
+}
+
+
+/* =========================================================
+   VERSUS CENTRAL
+========================================================= */
+
+.centerVS{
+    position:absolute;
+    top:260px;
+    left:50%;
+    transform:translateX(-50%);
+
+    font-size:55px;
+    font-weight:900;
+    font-style:italic;
+
+    color:white;
+
+    text-shadow:
+        0 0 10px #168cff,
+        0 0 30px #168cff;
+
+    z-index:1;
+}
+
+
+/* =========================================================
+   GRID DE 12 PERSONAGENS
+========================================================= */
+
+#roster{
+    position:absolute;
+
+    left:50%;
+    top:145px;
+
+    transform:translateX(-50%);
+
+    width:570px;
+    height:435px;
+
+    display:grid;
+
+    grid-template-columns:repeat(4,1fr);
+    grid-template-rows:repeat(3,1fr);
+
+    gap:8px;
+
+    z-index:5;
+}
+
+
+/* =========================================================
+   CARD
+========================================================= */
+
+.characterCard{
+    position:relative;
+
+    border:2px solid #315267;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(25,65,90,.9),
+            rgba(2,10,17,.97)
+        );
+
+    overflow:hidden;
+
+    transition:
+        transform .15s,
+        border-color .15s,
+        box-shadow .15s;
+
+    cursor:pointer;
+}
+
+
+.characterCard.playable:hover{
+    transform:scale(1.06);
+
+    border-color:#48c9ff;
+
+    z-index:20;
+
+    box-shadow:
+        0 0 15px #168cff,
+        inset 0 0 25px rgba(0,150,255,.25);
+}
+
+
+.characterCard.selected{
+    border-color:#fff;
+
+    box-shadow:
+        0 0 20px #168cff,
+        inset 0 0 30px rgba(0,150,255,.3);
+}
+
+
+.characterCard.locked{
+    cursor:not-allowed;
+
+    background:
+        linear-gradient(
+            145deg,
+            #111b22,
+            #05080b
+        );
+
+    opacity:.8;
+}
+
+
+/* imagem pequena dos personagens */
+
+.characterImage{
+    position:absolute;
+
+    left:5px;
+    right:5px;
+    top:5px;
+    bottom:28px;
+
+    width:calc(100% - 10px);
+    height:calc(100% - 33px);
+
+    object-fit:contain;
+
+    filter:
+        drop-shadow(0 0 7px rgba(0,140,255,.55));
+}
+
+
+/* nome do card */
+
+.characterCardName{
+    position:absolute;
+
+    left:0;
+    right:0;
+    bottom:0;
+
+    height:28px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    background:rgba(0,0,0,.88);
+
+    border-top:1px solid #315267;
+
+    color:white;
+
+    font-size:12px;
+    font-weight:bold;
+    letter-spacing:1px;
+
+    text-align:center;
+}
+
+
+.characterCard.locked .characterCardName{
+    color:#65727a;
+}
+
+
+/* cadeado */
+
+.lockIcon{
+    position:absolute;
+
+    top:8px;
+    right:9px;
+
+    font-size:17px;
+
+    opacity:.65;
+
+    z-index:2;
+}
+
+
+/* =========================================================
+   CONTROLES
+========================================================= */
+
+.selectionControls{
+    position:absolute;
+
+    bottom:18px;
+
+    left:0;
+    right:0;
+
+    display:flex;
+
+    justify-content:center;
+
+    gap:12px;
+
+    z-index:20;
+}
+
+.selectButton{
+    min-width:190px;
+
+    height:42px;
+
+    border:2px solid #168cff;
+
+    background:#061522;
+
+    color:white;
+
+    font-size:14px;
+
+    font-weight:bold;
+
+    letter-spacing:2px;
+
+    cursor:pointer;
+}
+
+.selectButton:hover{
+    background:#123b59;
+    box-shadow:0 0 15px #168cff;
+}
+
+.selectButton.confirm{
+    border-color:#29d8ff;
+
+    box-shadow:
+        0 0 12px rgba(0,210,255,.3);
+}
+
+
+/* =========================================================
+   VS SCREEN
+========================================================= */
+
+#vsScreen{
+    display:none;
+
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(15,50,75,.75),
+            #000 75%
+        );
+}
+
+.vsTitle{
+    font-size:100px;
+
+    font-weight:900;
+
+    color:white;
+
+    font-style:italic;
+
+    text-shadow:
+        0 0 15px #168cff,
+        0 0 40px #168cff;
+}
+
+.vsFighters{
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:70px;
+
+    margin:15px;
+}
+
+.vsFighter{
+    width:320px;
+    height:300px;
+
+    object-fit:contain;
+
+    filter:
+        drop-shadow(0 0 20px #168cff);
+}
+
+.vsName{
+    color:white;
+
+    font-size:28px;
+
+    font-weight:bold;
+
+    text-align:center;
+
+    margin-top:5px;
+
+    text-shadow:0 0 10px #168cff;
+}
+
+.vsCountdown{
+    color:#27e6ff;
+
+    font-size:65px;
+
+    font-weight:900;
+
+    text-shadow:0 0 20px #27e6ff;
+}
+
+
+/* =========================================================
+   HUD
+========================================================= */
+
+#hud{
+    position:fixed;
+
+    top:20px;
+
+    left:50%;
+
+    transform:translateX(-50%);
+
+    width:min(1100px,90vw);
+
+    display:none;
+
+    justify-content:space-between;
+
+    z-index:10;
+
+    pointer-events:none;
+}
+
+.playerHud{
+    width:43%;
+}
+
+.playerName{
+    color:#fff;
+
+    font-size:18px;
+
+    font-weight:bold;
+
+    margin-bottom:6px;
+
+    text-shadow:0 0 8px #000;
+}
+
+.bar{
+    width:100%;
+
+    height:25px;
+
+    background:#111;
+
+    border:2px solid #fff;
+
+    overflow:hidden;
+}
+
+.health{
+    height:100%;
+
+    width:100%;
+
+    background:
+        linear-gradient(
+            90deg,
+            #18ff66,
+            #caff00
+        );
+
+    transition:width .15s;
+}
+
+.rageBar{
+    margin-top:5px;
+
+    height:10px;
+
+    background:#111;
+
+    border:1px solid #aaa;
+}
+
+.rage{
+    height:100%;
+
+    width:0%;
+
+    background:#28c8ff;
+}
+
+.combo{
+    color:#fff;
+
+    font-size:22px;
+
+    font-weight:bold;
+
+    margin-top:8px;
+
+    text-shadow:0 0 8px #000;
+}
+
+
+/* =========================================================
+   PAUSA
+========================================================= */
+
+#pauseScreen{
+    display:none;
+
+    background:rgba(0,0,0,.75);
+}
+
+.pauseTitle{
+    font-size:60px;
+
+    color:#fff;
+
+    text-shadow:0 0 20px #168cff;
+}
+
+
+/* =========================================================
+   RESULTADO
+========================================================= */
+
+#resultScreen{
+    display:none;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(15,50,75,.8),
+            #000 75%
+        );
+}
+
+.resultTitle{
+    font-size:65px;
+
+    color:white;
+
+    text-shadow:0 0 25px #168cff;
+
+    margin-bottom:30px;
+}
+
+.resultWinner{
+    font-size:38px;
+
+    color:#27e6ff;
+
+    font-weight:bold;
+
+    margin-bottom:35px;
+}
+
+
+/* =========================================================
+   RESPONSIVO
+========================================================= */
+
+@media(max-width:1100px){
+
+    .playerPreview{
+        width:250px;
+    }
+
+    #player1Preview{
+        left:-30px;
+    }
+
+    #player2Preview{
+        right:-30px;
+    }
+
+    #roster{
+        width:500px;
+        height:390px;
+    }
+
+}
+
+@media(max-width:800px){
+
+    .playerPreview{
+        display:none;
+    }
+
+    .centerVS{
+        display:none;
+    }
+
+    #roster{
+        width:90vw;
+        height:55vh;
+        top:130px;
+    }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+
+<!-- =========================================================
+     MENU
+========================================================= -->
+
+<div id="menu" class="screen">
+
+    <img
+        id="logoImage"
+        class="logoImage"
+        src="logo-kaiju-genesis.png"
+        alt="Kaiju Genesis"
+        onerror="
+        this.style.display='none';
+        document.getElementById('logoFallback').style.display='block';
+        "
+    >
+
+    <div
+        id="logoFallback"
+        class="logoFallback"
+        style="display:none;"
+    >
+        KAIJU GENESIS
+    </div>
+
+
+    <div class="menuButtons">
+
+        <button
+            id="twoPlayersButton"
+            class="menuButton"
+        >
+            2 JOGADORES
+        </button>
+
+        <button
+            id="cpuButton"
+            class="menuButton"
+        >
+            VS CPU
+        </button>
+
+    </div>
+
+
+    <div class="version">
+        KAIJU GENESIS — DEMO
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     SELEÇÃO
+========================================================= -->
+
+<div id="characterSelect" class="screen">
+
+
+    <div class="selectHeader">
+
+        <div class="selectTitle">
+            KAIJU SELECT
+        </div>
+
+        <div
+            id="selectMode"
+            class="selectMode"
+        >
+            MODO
+        </div>
+
+        <div
+            id="selectTurn"
+            class="selectTurn"
+        >
+            JOGADOR 1 — ESCOLHA SEU KAIJU
+        </div>
+
+    </div>
+
+
+    <!-- JOGADOR 1 -->
+
+    <div
+        id="player1Preview"
+        class="playerPreview"
+    >
+
+        <div class="playerLabel">
+            JOGADOR 1
+        </div>
+
+        <img
+            id="previewImage1"
+            class="previewImage"
+            alt=""
+        >
+
+        <div
+            id="previewName1"
+            class="previewName"
+        >
+        </div>
+
+    </div>
+
+
+    <!-- JOGADOR 2 -->
+
+    <div
+        id="player2Preview"
+        class="playerPreview"
+    >
+
+        <div class="playerLabel">
+            JOGADOR 2
+        </div>
+
+        <img
+            id="previewImage2"
+            class="previewImage"
+            alt=""
+        >
+
+        <div
+            id="previewName2"
+            class="previewName"
+        >
+        </div>
+
+    </div>
+
+
+    <div class="centerVS">
+        VS
+    </div>
+
+
+    <!-- 12 QUADRADOS -->
+
+    <div id="roster"></div>
+
+
+    <div class="selectionControls">
+
+        <button
+            id="backSelectButton"
+            class="selectButton"
+        >
+            VOLTAR
+        </button>
+
+        <button
+            id="confirmSelectButton"
+            class="selectButton confirm"
+            style="display:none;"
+        >
+            CONFIRMAR
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     VS
+========================================================= -->
+
+<div id="vsScreen" class="screen">
+
+    <div class="vsTitle">
+        VS
+    </div>
+
+
+    <div class="vsFighters">
+
+        <div>
+
+            <img
+                id="vsImage1"
+                class="vsFighter"
+                alt=""
+            >
+
+            <div
+                id="vsName1"
+                class="vsName"
+            >
+            </div>
+
+        </div>
+
+
+        <div>
+
+            <img
+                id="vsImage2"
+                class="vsFighter"
+                alt=""
+            >
+
+            <div
+                id="vsName2"
+                class="vsName"
+            >
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div
+        id="vsCountdown"
+        class="vsCountdown"
+    >
+        3
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     HUD
+========================================================= -->
+
+<div id="hud">
+
+    <div class="playerHud">
+
+        <div
+            id="playerName1"
+            class="playerName"
+        >
+            GODZILLA
+        </div>
+
+        <div class="bar">
+            <div
+                id="health1"
+                class="health"
+            ></div>
+        </div>
+
+        <div class="rageBar">
+
+            <div
+                id="rage1"
+                class="rage"
+            ></div>
+
+        </div>
+
+        <div
+            id="combo1"
+            class="combo"
+        ></div>
+
+    </div>
+
+
+    <div class="playerHud">
+
+        <div
+            id="playerName2"
+            class="playerName"
+        >
+            KING GHIDORAH
+        </div>
+
+        <div class="bar">
+
+            <div
+                id="health2"
+                class="health"
+            ></div>
+
+        </div>
+
+        <div class="rageBar">
+
+            <div
+                id="rage2"
+                class="rage"
+            ></div>
+
+        </div>
+
+        <div
+            id="combo2"
+            class="combo"
+        ></div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     PAUSA
+========================================================= -->
+
+<div
+    id="pauseScreen"
+    class="screen"
+>
+
+    <div class="pauseTitle">
+        PAUSADO
+    </div>
+
+    <div
+        style="
+        color:#aaa;
+        margin-top:15px;
+        "
+    >
+        ESPAÇO — CONTINUAR
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     RESULTADO
+========================================================= -->
+
+<div
+    id="resultScreen"
+    class="screen"
+>
+
+    <div class="resultTitle">
+        FIM DE BATALHA
+    </div>
+
+    <div
+        id="resultWinner"
+        class="resultWinner"
+    >
+    </div>
+
+    <button
+        id="restartButton"
+        class="menuButton"
+    >
+        NOVA BATALHA
+    </button>
+
+    <button
+        id="menuButton"
+        class="menuButton"
+        style="margin-top:15px;"
+    >
+        MENU PRINCIPAL
+    </button>
+
+</div>
+
+
+<canvas id="game"></canvas>
+
+
+<script>
+
+
+/* =========================================================
+   IMAGENS
+========================================================= */
+
+const images={
+
+    godzilla:
+    "https://i.ibb.co/sJKWB7qr/deemr2m-4196b7ea-9fb3-4ef0-861c-1580b4681274.png",
+
+    godzillaAttack1:
+    "https://i.ibb.co/bg9MbBVV/godzilla-atack.png",
+
+    godzillaAttack2:
+    "https://i.ibb.co/39GGvdsb/9f3d12b7cab4c1b3bafaf540a0ed6d37.jpg",
+
+    godzillaAttack3:
+    "https://i.ibb.co/mV6pcPRV/Adobe-Express-file.png",
+
+    ghidorah:
+    "https://i.ibb.co/WWFHQ0Wy/0bbe3f8605c85c5a108089bd72998d00-removebg-preview.png",
+
+    ghidorahAttack1:
+    "https://i.ibb.co/cXw0GgPV/Design-sem-nome-7-removebg-preview.png",
+
+    background:
+    "https://i.ibb.co/8yc7TdR/godzilla-anatomy-scene-super-Jumbo.jpg"
+
+};
+
+
+const img={};
+
+
+for(const key in images){
+
+    img[key]=new Image();
+
+    img[key].src=images[key];
+
+}
+
+
+/* =========================================================
+   ELEMENTOS
+========================================================= */
+
+const menuEl=
+document.getElementById("menu");
+
+const characterSelectEl=
+document.getElementById("characterSelect");
+
+const vsScreenEl=
+document.getElementById("vsScreen");
+
+const pauseScreenEl=
+document.getElementById("pauseScreen");
+
+const resultScreenEl=
+document.getElementById("resultScreen");
+
+const rosterEl=
+document.getElementById("roster");
+
+const selectModeEl=
+document.getElementById("selectMode");
+
+const selectTurnEl=
+document.getElementById("selectTurn");
+
+const confirmSelectButton=
+document.getElementById("confirmSelectButton");
+
+const backSelectButton=
+document.getElementById("backSelectButton");
+
+const twoPlayersButton=
+document.getElementById("twoPlayersButton");
+
+const cpuButton=
+document.getElementById("cpuButton");
+
+const previewImage1=
+document.getElementById("previewImage1");
+
+const previewImage2=
+document.getElementById("previewImage2");
+
+const previewName1=
+document.getElementById("previewName1");
+
+const previewName2=
+document.getElementById("previewName2");
+
+const vsImage1=
+document.getElementById("vsImage1");
+
+const vsImage2=
+document.getElementById("vsImage2");
+
+const vsName1=
+document.getElementById("vsName1");
+
+const vsName2=
+document.getElementById("vsName2");
+
+const vsCountdown=
+document.getElementById("vsCountdown");
+
+const hudEl=
+document.getElementById("hud");
+
+const health1=
+document.getElementById("health1");
+
+const health2=
+document.getElementById("health2");
+
+const rage1=
+document.getElementById("rage1");
+
+const rage2=
+document.getElementById("rage2");
+
+const combo1=
+document.getElementById("combo1");
+
+const combo2=
+document.getElementById("combo2");
+
+const playerName1=
+document.getElementById("playerName1");
+
+const playerName2=
+document.getElementById("playerName2");
+
+const resultWinner=
+document.getElementById("resultWinner");
+
+const restartButton=
+document.getElementById("restartButton");
+
+const menuButton=
+document.getElementById("menuButton");
+
+const canvas=
+document.getElementById("game");
+
+const ctx=
+canvas.getContext("2d");
+
+
+/* =========================================================
+   ESTADO
+========================================================= */
+
+let W=innerWidth;
+let H=innerHeight;
+
+let gameRunning=false;
+
+let paused=false;
+
+let gameMode="cpu";
+
+let selectionTurn=1;
+
+let selectedP1=null;
+let selectedP2=null;
+
+let selectedCard1=null;
+let selectedCard2=null;
+
+let godzilla;
+let ghidorah;
+
+let particles=[];
+
+let shake=0;
+
+
+/* =========================================================
+   12 PERSONAGENS
+========================================================= */
+
+const rosterData=[
+
+    {
+        id:"godzilla",
+        name:"GODZILLA",
+        imageKey:"godzilla",
+        playable:true
+    },
+
+    {
+        id:"ghidorah",
+        name:"KING GHIDORAH",
+        imageKey:"ghidorah",
+        playable:true
+    },
+
+    {
+        id:"kaiju3",
+        name:"EM BREVE",
+        imageKey:null,
+        playable:false
+    },
+
+    {
+        id:"kaiju4",
+        name:"EM BREVE",
+        imageKey:null,
+        playable:false
+    },
+
+    {
+        id:"kaiju5",
+        name:"EM BREVE",
+        imageKey:null,
+        playable:false
+    },
+
+    {
+        id:"kaiju6",
+        name:"EM BREVE",
+        imageKey:null,
+        playable:false
+    },
+
+    {
+        id:"kaiju7",
+        name:"EM BREVE",
+        imageKey:null,
+        playable:false
+    },
+
+    {
+        id:"kaiju8",
+        name:"EM BREVE",
+        imageKey:null,
+        playable:false
+    },
+
+    {
+        id:"kaiju9",
+        name:"EM BREVE",
+        imageKey:null,
+        playable:false
+    },
+
+    {
+        id:"kaiju10",
+        name:"EM BREVE",
+        imageKey:null,
+        playable:false
+    },
+
+    {
+        id:"kaiju11",
+        name:"EM BREVE",
+        imageKey:null,
+        playable:false
+    },
+
+    {
+        id:"kaiju12",
+        name:"EM BREVE",
+        imageKey:null,
+        playable:false
+    }
+
+];
+
+
+/* =========================================================
+   PREVIEW LATERAL
+========================================================= */
+
+function showPreview(character){
+
+    if(!character || !character.playable)
+        return;
+
+
+    if(selectionTurn===1){
+
+        previewImage1.src=
+            images[character.imageKey];
+
+        previewName1.textContent=
+            character.name;
+
+        previewImage1.classList.add("show");
+
+        previewName1.classList.add("show");
+
+    }
+
+    else{
+
+        previewImage2.src=
+            images[character.imageKey];
+
+        previewName2.textContent=
+            character.name;
+
+        previewImage2.classList.add("show");
+
+        previewName2.classList.add("show");
+
+    }
+
+}
+
+
+/* =========================================================
+   LIMPAR PREVIEW
+========================================================= */
+
+function clearPreviews(){
+
+    previewImage1.classList.remove("show");
+    previewImage2.classList.remove("show");
+
+    previewName1.classList.remove("show");
+    previewName2.classList.remove("show");
+
+    previewImage1.src="";
+    previewImage2.src="";
+
+    previewName1.textContent="";
+    previewName2.textContent="";
+
+}
+
+
+/* =========================================================
+   CRIAR OS 12 QUADRADOS
+========================================================= */
+
+function buildRoster(){
+
+    rosterEl.innerHTML="";
+
+
+    rosterData.forEach((character,index)=>{
+
+        const card=
+            document.createElement("div");
+
+
+        card.className=
+            "characterCard";
+
+
+        card.dataset.number=
+            String(index+1).padStart(2,"0");
+
+
+        if(character.playable){
+
+            card.classList.add("playable");
+
+
+            card.addEventListener(
+                "mouseenter",
+                ()=>{
+                    showPreview(character);
+                }
+            );
+
+
+            card.addEventListener(
+                "click",
+                ()=>{
+                    selectCharacter(character,card);
+                }
+            );
+
+        }
+
+        else{
+
+            card.classList.add("locked");
+
+        }
+
+
+        if(character.playable){
+
+            const characterImage=
+                document.createElement("img");
+
+            characterImage.className=
+                "characterImage";
+
+            characterImage.src=
+                images[character.imageKey];
+
+            characterImage.alt=
+                character.name;
+
+            card.appendChild(
+                characterImage
+            );
+
+        }
+
+        else{
+
+            const lock=
+                document.createElement("div");
+
+            lock.className=
+                "lockIcon";
+
+            lock.textContent="🔒";
+
+            card.appendChild(lock);
+
+        }
+
+
+        const name=
+            document.createElement("div");
+
+        name.className=
+            "characterCardName";
+
+        name.textContent=
+            character.name;
+
+        card.appendChild(name);
+
+
+        rosterEl.appendChild(card);
+
+    });
+
+}
+
+
+/* =========================================================
+   ABRIR SELEÇÃO
+========================================================= */
+
+function openCharacterSelect(mode){
+
+    console.log("ABRINDO SELEÇÃO:",mode);
+
+    gameMode=mode;
+
+    selectionTurn=1;
+
+    selectedP1=null;
+    selectedP2=null;
+
+    selectedCard1=null;
+    selectedCard2=null;
+
+    gameRunning=false;
+    paused=false;
+
+
+    menuEl.style.display="none";
+
+    vsScreenEl.style.display="none";
+
+    resultScreenEl.style.display="none";
+
+    pauseScreenEl.style.display="none";
+
+
+    characterSelectEl.classList.add("active");
+
+
+    selectModeEl.textContent=
+        mode==="cpu"
+        ? "MODO VS CPU"
+        : "MODO 2 JOGADORES";
+
+
+    selectTurnEl.textContent=
+        "JOGADOR 1 — ESCOLHA SEU KAIJU";
+
+
+    confirmSelectButton.style.display=
+        "none";
+
+
+    clearPreviews();
+
+    buildRoster();
+
+}
+
+
+/* =========================================================
+   SELECIONAR
+========================================================= */
+
+function selectCharacter(character,card){
+
+    if(!character.playable)
+        return;
+
+
+    if(selectionTurn===1){
+
+        selectedP1=character;
+
+
+        if(selectedCard1)
+            selectedCard1.classList.remove("selected");
+
+
+        selectedCard1=card;
+
+
+        card.classList.add("selected");
+
+
+        confirmSelectButton.style.display=
+            "block";
+
+
+        selectTurnEl.textContent=
+            "JOGADOR 1 — "+
+            character.name+
+            " SELECIONADO";
+
+
+        showPreview(character);
+
+    }
+
+    else{
+
+        if(
+            selectedP1 &&
+            character.id===selectedP1.id
+        ){
+
+            selectTurnEl.textContent=
+                "ESCOLHA UM KAIJU DIFERENTE";
+
+            return;
+
+        }
+
+
+        selectedP2=character;
+
+
+        if(selectedCard2)
+            selectedCard2.classList.remove("selected");
+
+
+        selectedCard2=card;
+
+
+        card.classList.add("selected");
+
+
+        confirmSelectButton.style.display=
+            "block";
+
+
+        selectTurnEl.textContent=
+            "JOGADOR 2 — "+
+            character.name+
+            " SELECIONADO";
+
+
+        showPreview(character);
+
+    }
+
+}
+
+
+/* =========================================================
+   CONFIRMAR
+========================================================= */
+
+function confirmCharacter(){
+
+    if(selectionTurn===1){
+
+        if(!selectedP1)
+            return;
+
+
+        if(gameMode==="cpu"){
+
+            const available=
+                rosterData.filter(character=>
+                    character.playable &&
+                    character.id!==selectedP1.id
+                );
+
+
+            selectedP2=
+                available[
+                    Math.floor(
+                        Math.random()*
+                        available.length
+                    )
+                ];
+
+
+            showPreviewForPlayer2(selectedP2);
+
+            startVersus();
+
+            return;
+
+        }
+
+
+        selectionTurn=2;
+
+
+        confirmSelectButton.style.display=
+            "none";
+
+
+        selectTurnEl.textContent=
+            "JOGADOR 2 — ESCOLHA SEU KAIJU";
+
+
+        if(selectedCard1)
+            selectedCard1.classList.remove(
+                "selected"
+            );
+
+
+        clearPlayer2Preview();
+
+    }
+
+    else{
+
+        if(!selectedP2)
+            return;
+
+
+        startVersus();
+
+    }
+
+}
+
+
+/* =========================================================
+   PREVIEW ESPECÍFICO DO JOGADOR 2
+========================================================= */
+
+function showPreviewForPlayer2(character){
+
+    if(!character)
+        return;
+
+    previewImage2.src=
+        images[character.imageKey];
+
+    previewName2.textContent=
+        character.name;
+
+    previewImage2.classList.add("show");
+
+    previewName2.classList.add("show");
+
+}
+
+
+/* =========================================================
+   LIMPAR APENAS PLAYER 2
+========================================================= */
+
+function clearPlayer2Preview(){
+
+    previewImage2.classList.remove("show");
+
+    previewName2.classList.remove("show");
+
+    previewImage2.src="";
+
+    previewName2.textContent="";
+
+}
+
+
+/* =========================================================
+   TELA VS
+========================================================= */
+
+function startVersus(){
+
+    characterSelectEl.classList.remove("active");
+
+    characterSelectEl.style.display=
+        "none";
+
+
+    vsScreenEl.style.display=
+        "flex";
+
+
+    vsImage1.src=
+        images[selectedP1.imageKey];
+
+    vsImage2.src=
+        images[selectedP2.imageKey];
+
+
+    vsName1.textContent=
+        selectedP1.name;
+
+    vsName2.textContent=
+        selectedP2.name;
+
+
+    let count=3;
+
+
+    vsCountdown.textContent=
+        count;
+
+
+    const timer=
+        setInterval(()=>{
+
+            count--;
+
+
+            if(count>0){
+
+                vsCountdown.textContent=
+                    count;
+
+            }
+
+            else{
+
+                vsCountdown.textContent=
+                    "FIGHT!";
+
+
+                clearInterval(timer);
+
+
+                setTimeout(()=>{
+
+                    startBattle();
+
+                },800);
+
+            }
+
+        },800);
+
+}
+
+
+/* =========================================================
+   ATAQUES
+========================================================= */
+
+const attacks={
+
+    light:{
+        damage:5,
+        range:105,
+        startup:6,
+        active:8,
+        recovery:15,
+        knockback:7,
+        stun:10,
+        cost:0
+    },
+
+    heavy:{
+        damage:11,
+        range:135,
+        startup:12,
+        active:9,
+        recovery:24,
+        knockback:15,
+        stun:17,
+        cost:0
+    },
+
+    special:{
+        damage:20,
+        range:165,
+        startup:20,
+        active:10,
+        recovery:34,
+        knockback:23,
+        stun:25,
+        cost:35
+    }
+
+};
+
+
+/* =========================================================
+   FIGHTER
+========================================================= */
+
+class Fighter{
+
+    constructor(options){
+
+        Object.assign(
+            this,
+            options
+        );
+
+
+        this.maxHealth=100;
+
+        this.health=100;
+
+        this.rage=0;
+
+        this.vx=0;
+
+        this.vy=0;
+
+        this.gravity=.8;
+
+        this.grounded=true;
+
+        this.onGround=true;
+
+        this.block=false;
+
+        this.attack=null;
+
+        this.attackFrame=0;
+
+        this.hitStun=0;
+
+        this.invuln=0;
+
+        this.flash=0;
+
+        this.combo=0;
+
+        this.comboTimer=0;
+
+        this.idle=
+            Math.random()*10;
+
+    }
+
+
+    update(opponent){
+
+        if(this.hitStun>0)
+            this.hitStun--;
+
+
+        if(this.invuln>0)
+            this.invuln--;
+
+
+        if(this.flash>0)
+            this.flash--;
+
+
+        if(this.comboTimer>0){
+
+            this.comboTimer--;
+
+        }
+
+        else{
+
+            this.combo=0;
+
+        }
+
+
+        this.vy+=this.gravity;
+
+
+        this.x+=this.vx;
+
+        this.y+=this.vy;
+
+
+        const floor=H*.88;
+
+
+        if(this.y>=floor){
+
+            this.y=floor;
+
+            this.vy=0;
+
+            this.grounded=true;
+
+            this.onGround=true;
+
+        }
+
+        else{
+
+            this.grounded=false;
+
+            this.onGround=false;
+
+        }
+
+
+        this.vx*=.82;
+
+
+        if(
+            this.x<
+            this.width/2
+        ){
+
+            this.x=
+                this.width/2;
+
+        }
+
+
+        if(
+            this.x>
+            W-this.width/2
+        ){
+
+            this.x=
+                W-this.width/2;
+
+        }
+
+
+        if(!this.attack){
+
+            this.facingRight=
+                this.x<
+                opponent.x;
+
+        }
+
+
+        if(this.attack){
+
+            this.attackFrame++;
+
+
+            const a=
+                attacks[this.attack];
+
+
+            if(
+                this.attackFrame>
+                a.startup+
+                a.active+
+                a.recovery
+            ){
+
+                this.attack=null;
+
+                this.attackFrame=0;
+
+            }
+
+        }
+
+    }
+
+
+    startAttack(type){
+
+        if(this.hitStun>0)
+            return;
+
+
+        if(this.attack)
+            return;
+
+
+        const a=
+            attacks[type];
+
+
+        if(this.rage<a.cost)
+            return;
+
+
+        this.rage-=a.cost;
+
+
+        this.attack=type;
+
+        this.attackFrame=0;
+
+    }
+
+
+    jump(){
+
+        if(
+            this.grounded &&
+            this.hitStun<=0
+        ){
+
+            this.vy=-17;
+
+            this.grounded=false;
+
+        }
+
+    }
+
+
+    takeHit(
+        damage,
+        knockback,
+        stun
+    ){
+
+        if(this.invuln>0)
+            return;
+
+
+        if(this.block){
+
+            damage*=.25;
+
+            knockback*=.35;
+
+        }
+
+
+        this.health-=damage;
+
+
+        if(this.health<0)
+            this.health=0;
+
+
+        this.rage=
+            Math.min(
+                100,
+                this.rage+
+                damage*.7
+            );
+
+
+        this.vx=
+            this.x<
+            (this===godzilla
+                ?ghidorah.x
+                :godzilla.x)
+            ?-knockback
+            :knockback;
+
+
+        this.hitStun=stun;
+
+        this.invuln=8;
+
+        this.flash=10;
+
+        shake=8;
+
+
+        for(let i=0;i<12;i++){
+
+            particles.push({
+
+                x:this.x,
+
+                y:
+                    this.y-
+                    this.height*.5,
+
+                vx:
+                    (Math.random()-.5)*10,
+
+                vy:
+                    (Math.random()-.8)*8,
+
+                life:30
+
+            });
+
+        }
+
+    }
+
+
+    attackImage(){
+
+        if(
+            this.imageKey===
+            "godzilla"
+        ){
+
+            if(this.attack==="light")
+                return "godzillaAttack1";
+
+            if(this.attack==="heavy")
+                return "godzillaAttack2";
+
+            return "godzillaAttack3";
+
+        }
+
+
+        if(
+            this.imageKey===
+            "ghidorah"
+        ){
+
+            if(this.attack==="light")
+                return "ghidorahAttack1";
+
+            return "ghidorah";
+
+        }
+
+
+        return this.imageKey;
+
+    }
+
+
+    draw(){
+
+        const key=
+            this.attack
+            ?this.attackImage()
+            :this.imageKey;
+
+
+        const im=
+            img[key]||
+            img[this.imageKey];
+
+
+        if(
+            !im||
+            !im.complete||
+            !im.naturalWidth
+        )
+            return;
+
+
+        let dw=this.width;
+
+        let dh=this.height;
+
+        let dx=
+            this.x-
+            dw/2;
+
+        let dy=
+            this.y-
+            dh;
+
+
+        if(
+            this.onGround &&
+            !this.attack &&
+            !this.hitStun
+        ){
+
+            dy+=
+                Math.sin(
+                    performance.now()/
+                    250+
+                    this.idle
+                )*2;
+
+        }
+
+
+        ctx.save();
+
+
+        if(
+            this.flash%2===0 &&
+            this.invuln
+        ){
+
+            ctx.globalAlpha=.55;
+
+        }
+
+
+        if(this.block){
+
+            ctx.shadowBlur=20;
+
+            ctx.shadowColor="#fff";
+
+        }
+
+
+        if(!this.facingRight){
+
+            ctx.translate(
+                dx+dw,
+                dy
+            );
+
+            ctx.scale(-1,1);
+
+
+            ctx.drawImage(
+                im,
+                0,
+                0,
+                dw,
+                dh
+            );
+
+        }
+
+        else{
+
+            ctx.drawImage(
+                im,
+                dx,
+                dy,
+                dw,
+                dh
+            );
+
+        }
+
+
+        ctx.restore();
+
+    }
+
+}
+
+
+/* =========================================================
+   CRIAR LUTADORES
+========================================================= */
+
+function createFighters(){
+
+    const fighterHeight=
+        Math.min(
+            470,
+            H*.62
+        );
+
+
+    const p1Image=
+        img[selectedP1.imageKey];
+
+    const p2Image=
+        img[selectedP2.imageKey];
+
+
+    const ratio1=
+        p1Image.naturalWidth/
+        p1Image.naturalHeight;
+
+
+    const ratio2=
+        p2Image.naturalWidth/
+        p2Image.naturalHeight;
+
+
+    godzilla=
+        new Fighter({
+
+            name:selectedP1.name,
+
+            x:W*.27,
+
+            y:H*.88,
+
+            width:
+                fighterHeight*
+                ratio1,
+
+            height:
+                fighterHeight,
+
+            imageKey:
+                selectedP1.imageKey,
+
+            facingRight:true,
+
+            id:1
+
+        });
+
+
+    ghidorah=
+        new Fighter({
+
+            name:selectedP2.name,
+
+            x:W*.73,
+
+            y:H*.88,
+
+            width:
+                fighterHeight*
+                ratio2,
+
+            height:
+                fighterHeight,
+
+            imageKey:
+                selectedP2.imageKey,
+
+            facingRight:false,
+
+            id:2
+
+        });
+
+}
+
+
+/* =========================================================
+   INICIAR BATALHA
+========================================================= */
+
+function startBattle(){
+
+    vsScreenEl.style.display=
+        "none";
+
+
+    canvas.style.display=
+        "block";
+
+
+    hudEl.style.display=
+        "flex";
+
+
+    resize();
+
+
+    createFighters();
+
+
+    updateHUD();
+
+
+    gameRunning=true;
+
+    paused=false;
+
+}
+
+
+/* =========================================================
+   ATAQUE ACERTOU
+========================================================= */
+
+function checkAttack(
+    attacker,
+    defender
+){
+
+    if(!attacker.attack)
+        return;
+
+
+    const a=
+        attacks[
+            attacker.attack
+        ];
+
+
+    if(
+        attacker.attackFrame>=
+        a.startup &&
+
+        attacker.attackFrame<
+        a.startup+
+        a.active
+    ){
+
+        if(
+            attacker.attackFrame===
+            a.startup
+        ){
+
+            const distance=
+                Math.abs(
+                    attacker.x-
+                    defender.x
+                );
+
+
+            if(
+                distance<=
+                a.range
+            ){
+
+                defender.takeHit(
+                    a.damage,
+                    a.knockback,
+                    a.stun
+                );
+
+
+                attacker.combo++;
+
+                attacker.comboTimer=60;
+
+
+                attacker.rage=
+                    Math.min(
+                        100,
+                        attacker.rage+8
+                    );
+
+            }
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   CONTROLES
+========================================================= */
+
+const keys={};
+
+
+addEventListener(
+    "keydown",
+    e=>{
+
+        keys[e.code]=true;
+
+
+        if(e.code==="Space"){
+
+            e.preventDefault();
+
+
+            if(gameRunning){
+
+                paused=!paused;
+
+
+                pauseScreenEl.style.display=
+                    paused
+                    ?"flex"
+                    :"none";
+
+            }
+
+        }
+
+
+        if(e.code==="KeyR"){
+
+            if(gameRunning){
+
+                restartBattle();
+
+            }
+
+        }
+
+    }
+);
+
+
+addEventListener(
+    "keyup",
+    e=>{
+
+        keys[e.code]=false;
+
+    }
+);
+
+
+/* =========================================================
+   JOGADOR 1
+========================================================= */
+
+function controlPlayer1(){
+
+    if(!godzilla)
+        return;
+
+
+    godzilla.block=
+        !!keys["KeyS"];
+
+
+    if(godzilla.hitStun>0)
+        return;
+
+
+    if(!godzilla.attack){
+
+        if(keys["KeyA"])
+            godzilla.vx=-6;
+
+
+        if(keys["KeyD"])
+            godzilla.vx=6;
+
+    }
+
+
+    if(keys["KeyW"]){
+
+        if(!keys._p1jump)
+            godzilla.jump();
+
+
+        keys._p1jump=true;
+
+    }
+
+    else{
+
+        keys._p1jump=false;
+
+    }
+
+
+    if(keys["KeyF"]){
+
+        if(!keys._p1light)
+            godzilla.startAttack("light");
+
+
+        keys._p1light=true;
+
+    }
+
+    else{
+
+        keys._p1light=false;
+
+    }
+
+
+    if(keys["KeyG"]){
+
+        if(!keys._p1heavy)
+            godzilla.startAttack("heavy");
+
+
+        keys._p1heavy=true;
+
+    }
+
+    else{
+
+        keys._p1heavy=false;
+
+    }
+
+
+    if(keys["KeyH"]){
+
+        if(!keys._p1special)
+            godzilla.startAttack("special");
+
+
+        keys._p1special=true;
+
+    }
+
+    else{
+
+        keys._p1special=false;
+
+    }
+
+}
+
+
+/* =========================================================
+   CPU
+========================================================= */
+
+let cpuTimer=0;
+
+
+function controlCPU(){
+
+    if(!ghidorah)
+        return;
+
+
+    ghidorah.block=false;
+
+
+    if(ghidorah.hitStun>0)
+        return;
+
+
+    const distance=
+        godzilla.x-
+        ghidorah.x;
+
+
+    const abs=
+        Math.abs(distance);
+
+
+    if(abs>170){
+
+        ghidorah.vx=
+            distance>0
+            ?4.2
+            :-4.2;
+
+    }
+
+    else{
+
+        ghidorah.vx=0;
+
+
+        cpuTimer--;
+
+
+        if(cpuTimer<=0){
+
+            cpuTimer=
+                30+
+                Math.floor(
+                    Math.random()*45
+                );
+
+
+            const r=
+                Math.random();
+
+
+            if(r<.45)
+                ghidorah.startAttack("light");
+
+            else if(r<.78)
+                ghidorah.startAttack("heavy");
+
+            else
+                ghidorah.startAttack("special");
+
+        }
+
+    }
+
+
+    if(Math.random()<.003)
+        ghidorah.jump();
+
+
+}
+
+
+/* =========================================================
+   JOGADOR 2
+========================================================= */
+
+function controlPlayer2(){
+
+    if(!ghidorah)
+        return;
+
+
+    ghidorah.block=
+        !!keys["ArrowDown"];
+
+
+    if(ghidorah.hitStun>0)
+        return;
+
+
+    if(!ghidorah.attack){
+
+        if(keys["ArrowLeft"])
+            ghidorah.vx=-6;
+
+
+        if(keys["ArrowRight"])
+            ghidorah.vx=6;
+
+    }
+
+
+    if(keys["ArrowUp"]){
+
+        if(!keys._p2jump)
+            ghidorah.jump();
+
+
+        keys._p2jump=true;
+
+    }
+
+    else{
+
+        keys._p2jump=false;
+
+    }
+
+
+    if(keys["Enter"]){
+
+        if(!keys._p2light)
+            ghidorah.startAttack("light");
+
+
+        keys._p2light=true;
+
+    }
+
+    else{
+
+        keys._p2light=false;
+
+    }
+
+
+    if(
+        keys["ShiftLeft"]||
+        keys["ShiftRight"]
+    ){
+
+        if(!keys._p2heavy)
+            ghidorah.startAttack("heavy");
+
+
+        keys._p2heavy=true;
+
+    }
+
+    else{
+
+        keys._p2heavy=false;
+
+    }
+
+
+    if(
+        keys["ControlLeft"]||
+        keys["ControlRight"]
+    ){
+
+        if(!keys._p2special)
+            ghidorah.startAttack("special");
+
+
+        keys._p2special=true;
+
+    }
+
+    else{
+
+        keys._p2special=false;
+
+    }
+
+}
+
+
+/* =========================================================
+   FUNDO
+========================================================= */
+
+function drawBackground(){
+
+    const background=
+        img.background;
+
+
+    if(
+        background.complete&&
+        background.naturalWidth
+    ){
+
+        const scale=
+            Math.max(
+                W/background.naturalWidth,
+                H/background.naturalHeight
+            );
+
+
+        const dw=
+            background.naturalWidth*
+            scale;
+
+
+        const dh=
+            background.naturalHeight*
+            scale;
+
+
+        const dx=
+            (W-dw)/2;
+
+
+        const dy=
+            (H-dh)/2;
+
+
+        ctx.drawImage(
+            background,
+            dx,
+            dy,
+            dw,
+            dh
+        );
+
+    }
+
+    else{
+
+        ctx.fillStyle="#071019";
+
+        ctx.fillRect(
+            0,
+            0,
+            W,
+            H
+        );
+
+    }
+
+
+    const gradient=
+        ctx.createLinearGradient(
+            0,
+            0,
+            0,
+            H
+        );
+
+
+    gradient.addColorStop(
+        0,
+        "rgba(0,0,0,.2)"
+    );
+
+
+    gradient.addColorStop(
+        1,
+        "rgba(0,0,0,.75)"
+    );
+
+
+    ctx.fillStyle=
+        gradient;
+
+
+    ctx.fillRect(
+        0,
+        0,
+        W,
+        H
+    );
+
+}
+
+
+/* =========================================================
+   PARTÍCULAS
+========================================================= */
+
+function drawParticles(){
+
+    particles.forEach(p=>{
+
+        p.x+=p.vx;
+
+        p.y+=p.vy;
+
+        p.vy+=.25;
+
+        p.life--;
+
+
+        ctx.globalAlpha=
+            Math.max(
+                0,
+                p.life/30
+            );
+
+
+        ctx.fillStyle=
+            "#42d9ff";
+
+
+        ctx.beginPath();
+
+
+        ctx.arc(
+            p.x,
+            p.y,
+            3,
+            0,
+            Math.PI*2
+        );
+
+
+        ctx.fill();
+
+    });
+
+
+    ctx.globalAlpha=1;
+
+
+    particles=
+        particles.filter(
+            p=>p.life>0
+        );
+
+}
+
+
+/* =========================================================
+   HUD
+========================================================= */
+
+function updateHUD(){
+
+    if(!godzilla||!ghidorah)
+        return;
+
+
+    health1.style.width=
+        godzilla.health+"%";
+
+
+    health2.style.width=
+        ghidorah.health+"%";
+
+
+    rage1.style.width=
+        godzilla.rage+"%";
+
+
+    rage2.style.width=
+        ghidorah.rage+"%";
+
+
+    playerName1.textContent=
+        godzilla.name;
+
+
+    playerName2.textContent=
+        ghidorah.name;
+
+
+    combo1.textContent=
+        godzilla.combo>1
+        ?godzilla.combo+" HIT!"
+        :"";
+
+
+    combo2.textContent=
+        ghidorah.combo>1
+        ?ghidorah.combo+" HIT!"
+        :"";
+
+}
+
+
+/* =========================================================
+   LOOP
+========================================================= */
+
+function loop(){
+
+    requestAnimationFrame(loop);
+
+
+    if(
+        !gameRunning||
+        paused
+    )
+        return;
+
+
+    resize();
+
+
+    ctx.save();
+
+
+    if(shake>0){
+
+        ctx.translate(
+            (Math.random()-.5)*shake,
+            (Math.random()-.5)*shake
+        );
+
+
+        shake*=.85;
+
+
+        if(shake<.3)
+            shake=0;
+
+    }
+
+
+    drawBackground();
+
+
+    if(gameMode==="cpu")
+        controlCPU();
+
+    else
+        controlPlayer2();
+
+
+    controlPlayer1();
+
+
+    godzilla.update(
+        ghidorah
+    );
+
+
+    ghidorah.update(
+        godzilla
+    );
+
+
+    checkAttack(
+        godzilla,
+        ghidorah
+    );
+
+
+    checkAttack(
+        ghidorah,
+        godzilla
+    );
+
+
+    godzilla.draw();
+
+    ghidorah.draw();
+
+
+    drawParticles();
+
+
+    ctx.restore();
+
+
+    updateHUD();
+
+
+    if(
+        godzilla.health<=0||
+        ghidorah.health<=0
+    ){
+
+        endBattle();
+
+    }
+
+}
+
+
+/* =========================================================
+   FIM
+========================================================= */
+
+function endBattle(){
+
+    if(!gameRunning)
+        return;
+
+
+    gameRunning=false;
+
+
+    hudEl.style.display=
+        "none";
+
+
+    canvas.style.display=
+        "none";
+
+
+    const winner=
+        godzilla.health>0
+        ?godzilla.name
+        :ghidorah.name;
+
+
+    resultWinner.textContent=
+        winner+
+        " VENCEU!";
+
+
+    resultScreenEl.style.display=
+        "flex";
+
+}
+
+
+/* =========================================================
+   REINICIAR
+========================================================= */
+
+function restartBattle(){
+
+    resultScreenEl.style.display=
+        "none";
+
+
+    startBattle();
+
+}
+
+
+/* =========================================================
+   MENU
+========================================================= */
+
+function backToMenu(){
+
+    gameRunning=false;
+
+    paused=false;
+
+
+    characterSelectEl.classList.remove("active");
+
+    characterSelectEl.style.display=
+        "none";
+
+
+    canvas.style.display=
+        "none";
+
+
+    hudEl.style.display=
+        "none";
+
+
+    vsScreenEl.style.display=
+        "none";
+
+
+    resultScreenEl.style.display=
+        "none";
+
+
+    pauseScreenEl.style.display=
+        "none";
+
+
+    menuEl.style.display=
+        "flex";
+
+}
+
+
+/* =========================================================
+   RESIZE
+========================================================= */
+
+function resize(){
+
+    W=innerWidth;
+
+    H=innerHeight;
+
+    canvas.width=W;
+
+    canvas.height=H;
+
+}
+
+
+addEventListener(
+    "resize",
+    resize
+);
+
+
+/* =========================================================
+   BOTÕES
+========================================================= */
+
+twoPlayersButton.onclick=function(){
+
+    console.log(
+        "2 JOGADORES CLICADO"
+    );
+
+    openCharacterSelect("2p");
+
+};
+
+
+cpuButton.onclick=function(){
+
+    console.log(
+        "VS CPU CLICADO"
+    );
+
+    openCharacterSelect("cpu");
+
+};
+
+
+confirmSelectButton.addEventListener(
+    "click",
+    confirmCharacter
+);
+
+
+backSelectButton.addEventListener(
+    "click",
+    backToMenu
+);
+
+
+restartButton.addEventListener(
+    "click",
+    restartBattle
+);
+
+
+menuButton.addEventListener(
+    "click",
+    backToMenu
+);
+
+
+/* =========================================================
+   INICIAR
+========================================================= */
+
+resize();
+
+buildRoster();
+
+loop();
+
+
+</script>
+
+</body>
+
+</html>
